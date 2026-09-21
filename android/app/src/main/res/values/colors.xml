@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Brand green taken from the app logo; used for the launch window so the
+         splash matches the icon instead of flashing white. -->
+    <color name="brand_green">#0E4D25</color>
+</resources>

@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash('/c/Program Files/Java/jdk-22/bin/keytool.exe' -genkeypair -v -keystore 'C:\\\\KeyStore\\\\My Finance\\\\myfinance.jks' -storetype JKS -keyalg RSA -keysize 2048 -validity 10000 -alias key0 -storepass 123456 -keypass 123456 -dname 'CN=My Finance, OU=Mobile, O=Dasun, L=Colombo, ST=Western, C=LK')",
+      "Bash(\"/c/Program Files/Java/jdk-22/bin/keytool.exe\" -printcert -jarfile \"build/app/outputs/bundle/release/app-release.aab\")",
+      "Bash(unzip -p build/app/outputs/bundle/release/app-release.aab base/res/values/strings.xml)",
+      "Bash(unzip -l build/app/outputs/bundle/release/app-release.aab)",
+      "Bash(unzip -p build/app/outputs/bundle/release/app-release.aab base/manifest/AndroidManifest.xml)",
+      "Bash(flutter emulators *)",
+      "Bash(cp build/app/outputs/bundle/release/app-release.aab \"/c/KeyStore/My Finance/My Finance-release.aab\")"
+    ],
+    "additionalDirectories": [
+      "C:\\KeyStore\\My Finance"
+    ]
+  }
+}

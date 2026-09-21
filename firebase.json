@@ -1,0 +1,25 @@
+{
+  "firestore": {
+    "rules": "firestore.rules"
+  },
+  "flutter": {
+    "platforms": {
+      "android": {
+        "default": {
+          "projectId": "myfinance-e51e9",
+          "appId": "1:512408781555:android:0c8d92058a94a90f5cad86",
+          "fileOutput": "android/app/google-services.json"
+        }
+      },
+      "dart": {
+        "lib/firebase_options.dart": {
+          "projectId": "myfinance-e51e9",
+          "configurations": {
+            "android": "1:512408781555:android:0c8d92058a94a90f5cad86",
+            "ios": "1:512408781555:ios:6342f11968172d815cad86"
+          }
+        }
+      }
+    }
+  }
+}
