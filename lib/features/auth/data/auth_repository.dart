@@ -10,7 +10,13 @@ class AuthRepository {
 
   final FirebaseAuth _auth;
 
-  Stream<User?> authStateChanges() => _auth.authStateChanges();
+  /// Emits on sign-in and sign-out, and also whenever the user's profile
+  /// changes.
+  ///
+  /// `userChanges()` rather than `authStateChanges()`: the latter fires only on
+  /// sign-in/out, so the display name set during registration would not reach
+  /// the UI until the next app launch.
+  Stream<User?> authStateChanges() => _auth.userChanges();
 
   User? get currentUser => _auth.currentUser;
 
@@ -40,6 +46,9 @@ class AuthRepository {
     final trimmed = name.trim();
     if (trimmed.isNotEmpty) {
       await credential.user?.updateDisplayName(trimmed);
+      // updateDisplayName writes to the server but leaves the cached User
+      // stale; reload pulls the new profile so userChanges() emits it.
+      await credential.user?.reload();
     }
     return credential;
   }

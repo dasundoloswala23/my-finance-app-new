@@ -7,7 +7,14 @@
       "Bash(unzip -l build/app/outputs/bundle/release/app-release.aab)",
       "Bash(unzip -p build/app/outputs/bundle/release/app-release.aab base/manifest/AndroidManifest.xml)",
       "Bash(flutter emulators *)",
-      "Bash(cp build/app/outputs/bundle/release/app-release.aab \"/c/KeyStore/My Finance/My Finance-release.aab\")"
+      "Bash(cp build/app/outputs/bundle/release/app-release.aab \"/c/KeyStore/My Finance/My Finance-release.aab\")",
+      "Bash(git ls-tree *)",
+      "PowerShell(Stop-Process -Force)",
+      "Bash(rm -f 'C:\\\\Users\\\\thari/.android/avd/Pixel_3.avd/AVD.conf.lock' 'C:\\\\Users\\\\thari/.android/avd/Pixel_3.avd/multiinstance.lock')",
+      "Bash(rm -rf 'C:\\\\Users\\\\thari/.android/avd/Pixel_3.avd/hardware-qemu.ini.lock')",
+      "Bash(rm -f 'C:\\\\Users\\\\thari/.android/avd/Pixel_3.avd/*.txlHzw')",
+      "Bash(find 'C:\\\\Users\\\\thari/.android/avd/Pixel_3.avd' -name *.lock)",
+      "PowerShell($emu = \"$env:LOCALAPPDATA\\\\Android\\\\Sdk\\\\emulator\\\\emulator.exe\"; Start-Process -FilePath $emu -ArgumentList \"-avd\",\"Pixel_3\",\"-no-snapshot-load\",\"-no-boot-anim\" -WindowStyle Minimized; Start-Sleep -Seconds 2; \"emulator started detached\")"
     ],
     "additionalDirectories": [
       "C:\\KeyStore\\My Finance"
