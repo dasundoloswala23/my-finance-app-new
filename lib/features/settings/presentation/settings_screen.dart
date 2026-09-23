@@ -1,3 +1,6 @@
+import 'dart:io' show Platform;
+
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -5,6 +8,8 @@ import '../../../core/providers.dart';
 import '../../../services/app_review_service.dart';
 import '../../../services/app_update_service.dart';
 import '../../categories/presentation/categories_screen.dart';
+import '../../sms_import/data/sms_listener_service.dart';
+import '../../sms_import/presentation/sms_review_screen.dart';
 
 /// App version shown in About.
 ///
@@ -48,6 +53,19 @@ class SettingsScreen extends ConsumerWidget {
               ),
             ),
           ),
+          if (!kIsWeb && Platform.isAndroid) ...[
+            const Divider(),
+            ListTile(
+              leading: const Icon(Icons.sms_outlined),
+              title: const Text('Auto-detect from SMS'),
+              subtitle: const Text(
+                'Review bank transaction alerts detected from SMS '
+                '(Android only)',
+              ),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () => _openSmsReview(context),
+            ),
+          ],
           const Divider(),
           ListTile(
             leading: const Icon(Icons.star_outline),
@@ -70,6 +88,26 @@ class SettingsScreen extends ConsumerWidget {
           ),
         ],
       ),
+    );
+  }
+
+  Future<void> _openSmsReview(BuildContext context) async {
+    final messenger = ScaffoldMessenger.of(context);
+    final granted = await SmsListenerService.requestPermission();
+    if (!granted) {
+      messenger.showSnackBar(
+        const SnackBar(
+          content: Text(
+            'SMS permission is required to detect transactions.',
+          ),
+        ),
+      );
+      return;
+    }
+    SmsListenerService.startListening();
+    if (!context.mounted) return;
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(builder: (_) => const SmsReviewScreen()),
     );
   }
 
