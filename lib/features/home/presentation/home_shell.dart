@@ -4,6 +4,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/balance_math.dart';
 import '../../accounts/presentation/accounts_screen.dart';
 import '../../dashboard/presentation/dashboard_screen.dart';
+import '../../debts/presentation/debt_form_screen.dart';
+import '../../debts/presentation/debts_screen.dart';
 import '../../settings/presentation/settings_screen.dart';
 import '../../transactions/presentation/transaction_form_screen.dart';
 import '../../transactions/presentation/transactions_screen.dart';
@@ -38,6 +40,11 @@ class _HomeShellState extends ConsumerState<HomeShell> {
       icon: Icon(Icons.account_balance_wallet_outlined),
       selectedIcon: Icon(Icons.account_balance_wallet),
       label: 'Accounts',
+    ),
+    NavigationDestination(
+      icon: Icon(Icons.handshake_outlined),
+      selectedIcon: Icon(Icons.handshake),
+      label: 'Debts',
     ),
     NavigationDestination(
       icon: Icon(Icons.settings_outlined),
@@ -85,8 +92,35 @@ class _HomeShellState extends ConsumerState<HomeShell> {
                 );
               },
             ),
+            const Divider(height: 1),
+            ListTile(
+              leading: const CircleAvatar(child: Icon(Icons.call_made)),
+              title: const Text('Lend money'),
+              subtitle: const Text('Someone will owe you'),
+              onTap: () {
+                Navigator.of(sheetContext).pop();
+                _openDebtForm(DebtDirection.given);
+              },
+            ),
+            ListTile(
+              leading: const CircleAvatar(child: Icon(Icons.call_received)),
+              title: const Text('Borrow money'),
+              subtitle: const Text('You will owe someone'),
+              onTap: () {
+                Navigator.of(sheetContext).pop();
+                _openDebtForm(DebtDirection.taken);
+              },
+            ),
           ],
         ),
+      ),
+    );
+  }
+
+  void _openDebtForm(DebtDirection direction) {
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => DebtFormScreen(initialDirection: direction),
       ),
     );
   }
@@ -108,6 +142,7 @@ class _HomeShellState extends ConsumerState<HomeShell> {
           DashboardScreen(),
           TransactionsScreen(),
           AccountsScreen(),
+          DebtsScreen(),
           SettingsScreen(),
         ],
       ),

@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../features/accounts/data/account_repository.dart';
 import '../features/auth/data/auth_repository.dart';
 import '../features/categories/data/category_repository.dart';
+import '../features/debts/data/debt_repository.dart';
 import '../features/sms_import/data/pending_sms_repository.dart';
 import '../features/transactions/data/transaction_repository.dart';
 import '../features/transfers/data/transfer_repository.dart';
@@ -57,6 +58,12 @@ final transferRepositoryProvider = Provider<TransferRepository?>((ref) {
   final uid = ref.watch(currentUidProvider);
   if (uid == null) return null;
   return TransferRepository(ref.watch(firestoreProvider), uid);
+});
+
+final debtRepositoryProvider = Provider<DebtRepository?>((ref) {
+  final uid = ref.watch(currentUidProvider);
+  if (uid == null) return null;
+  return DebtRepository(ref.watch(firestoreProvider), uid);
 });
 
 final pendingSmsRepositoryProvider = Provider<PendingSmsRepository?>((ref) {

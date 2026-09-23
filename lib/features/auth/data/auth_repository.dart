@@ -78,6 +78,24 @@ class AuthRepository {
           'Enable Email/Password under Authentication in the Firebase console.';
     }
 
+    // A request that reached the network and then died mid-flight — weak or
+    // flapping Wi-Fi. Firebase wraps these as a generic internal-error, which
+    // would otherwise read to the user as a bug in the app.
+    const transportFailures = [
+      'unexpected end of stream',
+      'Unable to resolve host',
+      'SocketException',
+      'SocketTimeout',
+      'timeout',
+      'okhttp',
+    ];
+    if (transportFailures.any(
+      (marker) => details.toLowerCase().contains(marker.toLowerCase()),
+    )) {
+      return 'Could not reach the server. Check your connection and '
+          'try again.';
+    }
+
     switch (error.code) {
       case 'invalid-email':
         return 'That email address is not valid.';

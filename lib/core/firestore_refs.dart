@@ -16,6 +16,8 @@ class FirestoreRefs {
   static const String categoriesCollection = 'categories';
   static const String transactionsCollection = 'transactions';
   static const String transfersCollection = 'transfers';
+  static const String debtsCollection = 'debts';
+  static const String debtSettlementsCollection = 'debtSettlements';
 
   DocumentReference<Map<String, dynamic>> get user =>
       _db.collection(usersCollection).doc(uid);
@@ -31,4 +33,12 @@ class FirestoreRefs {
 
   CollectionReference<Map<String, dynamic>> get transfers =>
       user.collection(transfersCollection);
+
+  CollectionReference<Map<String, dynamic>> get debts =>
+      user.collection(debtsCollection);
+
+  /// Settlements are top-level and carry a `debtId`, so every settlement can be
+  /// read in one query for the activity feed.
+  CollectionReference<Map<String, dynamic>> get debtSettlements =>
+      user.collection(debtSettlementsCollection);
 }

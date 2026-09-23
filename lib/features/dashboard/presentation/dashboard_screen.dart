@@ -10,6 +10,8 @@ import '../../../core/widgets/empty_state.dart';
 import '../../../core/widgets/money_text.dart';
 import '../../../services/app_update_service.dart';
 import '../../accounts/domain/account.dart';
+import '../../debts/presentation/debts_screen.dart';
+import '../../debts/providers.dart';
 import '../../transactions/domain/txn.dart';
 import '../../transactions/presentation/transaction_form_screen.dart';
 import '../../transfers/presentation/transfer_form_screen.dart';
@@ -68,6 +70,8 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
               const _TotalMoneyCard(),
               const SizedBox(height: 16),
               const _MonthSummaryRow(),
+              const SizedBox(height: 16),
+              const _DebtSummaryRow(),
               const SizedBox(height: 24),
               _SectionHeader(
                 title: 'Accounts',
@@ -180,6 +184,109 @@ class _MonthSummaryRow extends ConsumerWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+/// Outstanding debts, kept deliberately separate from Total Money: that figure
+/// means cash actually held, and folding debts into it would hide how much is
+/// genuinely spendable today.
+class _DebtSummaryRow extends ConsumerWidget {
+  const _DebtSummaryRow();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final summary = ref.watch(debtSummaryProvider);
+
+    // Nothing owed either way — don't take up space on the dashboard.
+    if (summary.receivable == 0 && summary.payable == 0) {
+      return const SizedBox.shrink();
+    }
+
+    void openDebts() => Navigator.of(context).push(
+      MaterialPageRoute<void>(builder: (_) => const DebtsScreen()),
+    );
+
+    return Row(
+      children: [
+        Expanded(
+          child: _DebtTile(
+            label: "You'll receive",
+            amountMinor: summary.receivable,
+            icon: Icons.call_made,
+            color: BrandColors.income,
+            onTap: openDebts,
+          ),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: _DebtTile(
+            label: "You'll pay",
+            amountMinor: summary.payable,
+            icon: Icons.call_received,
+            color: BrandColors.expense,
+            onTap: openDebts,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _DebtTile extends StatelessWidget {
+  const _DebtTile({
+    required this.label,
+    required this.amountMinor,
+    required this.icon,
+    required this.color,
+    required this.onTap,
+  });
+
+  final String label;
+  final int amountMinor;
+  final IconData icon;
+  final Color color;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Card(
+      child: InkWell(
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.all(14),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Icon(icon, size: 16, color: color),
+                  const SizedBox(width: 6),
+                  Expanded(
+                    child: Text(
+                      label,
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
+                      maxLines: 2,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              Text(
+                Money.format(amountMinor),
+                style: theme.textTheme.titleMedium?.copyWith(
+                  color: color,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }
