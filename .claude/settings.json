@@ -14,7 +14,13 @@
       "Bash(rm -rf 'C:\\\\Users\\\\thari/.android/avd/Pixel_3.avd/hardware-qemu.ini.lock')",
       "Bash(rm -f 'C:\\\\Users\\\\thari/.android/avd/Pixel_3.avd/*.txlHzw')",
       "Bash(find 'C:\\\\Users\\\\thari/.android/avd/Pixel_3.avd' -name *.lock)",
-      "PowerShell($emu = \"$env:LOCALAPPDATA\\\\Android\\\\Sdk\\\\emulator\\\\emulator.exe\"; Start-Process -FilePath $emu -ArgumentList \"-avd\",\"Pixel_3\",\"-no-snapshot-load\",\"-no-boot-anim\" -WindowStyle Minimized; Start-Sleep -Seconds 2; \"emulator started detached\")"
+      "PowerShell($emu = \"$env:LOCALAPPDATA\\\\Android\\\\Sdk\\\\emulator\\\\emulator.exe\"; Start-Process -FilePath $emu -ArgumentList \"-avd\",\"Pixel_3\",\"-no-snapshot-load\",\"-no-boot-anim\" -WindowStyle Minimized; Start-Sleep -Seconds 2; \"emulator started detached\")",
+      "Bash(python -)",
+      "Bash(awk '{printf \"%s  %.1f MB\\\\n\", $NF, $5/1024/1024}')",
+      "Bash(git status *)",
+      "Bash(awk '{printf \"%.1f KB\\\\n\", $5/1024}')",
+      "Bash(git restore *)",
+      "Bash(git check-ignore *)"
     ],
     "additionalDirectories": [
       "C:\\KeyStore\\My Finance"
