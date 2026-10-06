@@ -15,7 +15,7 @@ import '../../sms_import/presentation/sms_review_screen.dart';
 ///
 /// Kept as a constant rather than pulling in package_info_plus for one string;
 /// it must be bumped alongside `version:` in pubspec.yaml.
-const String kAppVersion = '1.0.0';
+const String kAppVersion = '1.0.1';
 
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
