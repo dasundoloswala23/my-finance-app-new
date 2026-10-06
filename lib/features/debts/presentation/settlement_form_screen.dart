@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import '../../../core/balance_math.dart';
 import '../../../core/money.dart';
 import '../../../core/providers.dart';
+import '../../../core/widgets/affects_balance_switch.dart';
 import '../../dashboard/providers.dart';
 import '../domain/debt.dart';
 import '../domain/debt_settlement.dart';
@@ -35,6 +36,7 @@ class _SettlementFormScreenState extends ConsumerState<SettlementFormScreen> {
 
   late DateTime _date;
   String? _accountId;
+  bool _affectsBalance = true;
 
   bool _isSubmitting = false;
   String? _errorMessage;
@@ -56,18 +58,23 @@ class _SettlementFormScreenState extends ConsumerState<SettlementFormScreen> {
 
     _date = existing?.date ?? DateTime.now();
     _accountId = existing?.accountId ?? widget.debt.accountId;
+    _affectsBalance = existing?.affectsBalance ?? true;
     _amountController = TextEditingController(
       text: Money.toEditingValue(existing?.amountMinor ?? _maxAmountMinor),
     );
     _noteController = TextEditingController(text: existing?.note ?? '');
+    _amountController.addListener(_onAmountChanged);
   }
 
   @override
   void dispose() {
+    _amountController.removeListener(_onAmountChanged);
     _amountController.dispose();
     _noteController.dispose();
     super.dispose();
   }
+
+  void _onAmountChanged() => setState(() {});
 
   Future<void> _pickDate() async {
     final picked = await showDatePicker(
@@ -110,6 +117,7 @@ class _SettlementFormScreenState extends ConsumerState<SettlementFormScreen> {
           accountId: _accountId!,
           date: _date,
           note: _noteController.text.trim(),
+          affectsBalance: _affectsBalance,
         );
       } else {
         await repository.addSettlement(
@@ -118,6 +126,7 @@ class _SettlementFormScreenState extends ConsumerState<SettlementFormScreen> {
           accountId: _accountId!,
           date: _date,
           note: _noteController.text.trim(),
+          affectsBalance: _affectsBalance,
         );
       }
       if (mounted) navigator.pop();
@@ -238,6 +247,19 @@ class _SettlementFormScreenState extends ConsumerState<SettlementFormScreen> {
                   labelText: 'Note (optional)',
                   prefixIcon: Icon(Icons.notes),
                 ),
+              ),
+              const SizedBox(height: 16),
+              AffectsBalanceSwitch(
+                value: _affectsBalance,
+                onChanged: (value) =>
+                    setState(() => _affectsBalance = value),
+                accountName: accounts
+                    .where((account) => account.id == _accountId)
+                    .map((account) => account.name)
+                    .firstOrNull,
+                // Settling runs opposite to the debt: being repaid is money in.
+                increases: isGiven,
+                amountMinor: Money.tryParse(_amountController.text),
               ),
               if (_errorMessage != null) ...[
                 const SizedBox(height: 16),

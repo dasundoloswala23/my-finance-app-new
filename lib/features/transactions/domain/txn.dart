@@ -15,6 +15,7 @@ class Txn {
     required this.date,
     this.categoryId,
     this.note = '',
+    this.affectsBalance = true,
   });
 
   final String id;
@@ -26,6 +27,12 @@ class Txn {
   final String? categoryId;
   final String note;
   final DateTime date;
+
+  /// Whether this entry moved money in or out of [accountId].
+  ///
+  /// False records the entry for the log only — money that moved outside the
+  /// tracked accounts, or that was already counted some other way.
+  final bool affectsBalance;
 
   /// Signed value for display and for summing into a running total.
   int get signedAmountMinor =>
@@ -43,6 +50,9 @@ class Txn {
       categoryId: data['categoryId'] as String?,
       note: (data['note'] as String?) ?? '',
       date: (data['date'] as Timestamp?)?.toDate() ?? DateTime.now(),
+      // Defaults true so entries written before this flag existed keep
+      // behaving as they did.
+      affectsBalance: (data['affectsBalance'] as bool?) ?? true,
     );
   }
 
@@ -53,6 +63,7 @@ class Txn {
     'categoryId': categoryId,
     'note': note,
     'date': Timestamp.fromDate(date),
+    'affectsBalance': affectsBalance,
   };
 
   Txn copyWith({
@@ -62,6 +73,7 @@ class Txn {
     String? categoryId,
     String? note,
     DateTime? date,
+    bool? affectsBalance,
   }) {
     return Txn(
       id: id,
@@ -71,6 +83,7 @@ class Txn {
       categoryId: categoryId ?? this.categoryId,
       note: note ?? this.note,
       date: date ?? this.date,
+      affectsBalance: affectsBalance ?? this.affectsBalance,
     );
   }
 }

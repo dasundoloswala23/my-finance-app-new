@@ -13,11 +13,19 @@ enum TxnType { income, expense }
 ///
 /// Income increases the account, expense decreases it. [amountMinor] is always
 /// positive; direction comes from [type].
+///
+/// [affectsBalance] false records the entry without touching any balance — for
+/// money that moved outside the tracked accounts, or that was already counted.
+/// It yields an empty delta, which is what lets the edit paths below compose:
+/// turning the flag on or off is just one side of the reverse-then-apply pair
+/// going empty.
 Map<String, int> applyTransaction({
   required String accountId,
   required TxnType type,
   required int amountMinor,
+  bool affectsBalance = true,
 }) {
+  if (!affectsBalance) return const {};
   final signed = type == TxnType.income ? amountMinor : -amountMinor;
   return {accountId: signed};
 }
@@ -27,11 +35,13 @@ Map<String, int> reverseTransaction({
   required String accountId,
   required TxnType type,
   required int amountMinor,
+  bool affectsBalance = true,
 }) {
   final applied = applyTransaction(
     accountId: accountId,
     type: type,
     amountMinor: amountMinor,
+    affectsBalance: affectsBalance,
   );
   return applied.map((key, value) => MapEntry(key, -value));
 }
@@ -47,17 +57,21 @@ Map<String, int> editTransaction({
   required String newAccountId,
   required TxnType newType,
   required int newAmountMinor,
+  bool oldAffectsBalance = true,
+  bool newAffectsBalance = true,
 }) {
   return mergeDeltas([
     reverseTransaction(
       accountId: oldAccountId,
       type: oldType,
       amountMinor: oldAmountMinor,
+      affectsBalance: oldAffectsBalance,
     ),
     applyTransaction(
       accountId: newAccountId,
       type: newType,
       amountMinor: newAmountMinor,
+      affectsBalance: newAffectsBalance,
     ),
   ]);
 }
@@ -124,11 +138,18 @@ enum DebtDirection { given, taken }
 ///
 /// Lending hands cash over, so the account falls; borrowing receives cash, so
 /// it rises. [amountMinor] is always positive — direction carries the sign.
+///
+/// [affectsBalance] false records what is owed without moving any cash, for a
+/// debt that predates the app or was settled outside the tracked accounts. The
+/// outstanding amount is unaffected either way — what someone owes does not
+/// depend on whether the cash passed through an account here.
 Map<String, int> applyDebt({
   required String accountId,
   required DebtDirection direction,
   required int amountMinor,
+  bool affectsBalance = true,
 }) {
+  if (!affectsBalance) return const {};
   final signed = direction == DebtDirection.given ? -amountMinor : amountMinor;
   return {accountId: signed};
 }
@@ -138,11 +159,13 @@ Map<String, int> reverseDebt({
   required String accountId,
   required DebtDirection direction,
   required int amountMinor,
+  bool affectsBalance = true,
 }) {
   final applied = applyDebt(
     accountId: accountId,
     direction: direction,
     amountMinor: amountMinor,
+    affectsBalance: affectsBalance,
   );
   return applied.map((key, value) => MapEntry(key, -value));
 }
@@ -155,17 +178,21 @@ Map<String, int> editDebt({
   required String newAccountId,
   required DebtDirection newDirection,
   required int newAmountMinor,
+  bool oldAffectsBalance = true,
+  bool newAffectsBalance = true,
 }) {
   return mergeDeltas([
     reverseDebt(
       accountId: oldAccountId,
       direction: oldDirection,
       amountMinor: oldAmountMinor,
+      affectsBalance: oldAffectsBalance,
     ),
     applyDebt(
       accountId: newAccountId,
       direction: newDirection,
       amountMinor: newAmountMinor,
+      affectsBalance: newAffectsBalance,
     ),
   ]);
 }
@@ -176,11 +203,17 @@ Map<String, int> editDebt({
 /// lent increases the account, repaying money you borrowed decreases it. So
 /// creating a debt and then settling it in full leaves the account exactly
 /// where it started.
+///
+/// A settlement carries its own [affectsBalance]: a debt recorded without
+/// moving cash can still be repaid into a tracked account today, and vice
+/// versa, so the two flags are independent.
 Map<String, int> applyDebtSettlement({
   required String accountId,
   required DebtDirection direction,
   required int amountMinor,
+  bool affectsBalance = true,
 }) {
+  if (!affectsBalance) return const {};
   final signed = direction == DebtDirection.given ? amountMinor : -amountMinor;
   return {accountId: signed};
 }
@@ -190,11 +223,13 @@ Map<String, int> reverseDebtSettlement({
   required String accountId,
   required DebtDirection direction,
   required int amountMinor,
+  bool affectsBalance = true,
 }) {
   final applied = applyDebtSettlement(
     accountId: accountId,
     direction: direction,
     amountMinor: amountMinor,
+    affectsBalance: affectsBalance,
   );
   return applied.map((key, value) => MapEntry(key, -value));
 }
@@ -206,17 +241,21 @@ Map<String, int> editDebtSettlement({
   required String newAccountId,
   required int newAmountMinor,
   required DebtDirection direction,
+  bool oldAffectsBalance = true,
+  bool newAffectsBalance = true,
 }) {
   return mergeDeltas([
     reverseDebtSettlement(
       accountId: oldAccountId,
       direction: direction,
       amountMinor: oldAmountMinor,
+      affectsBalance: oldAffectsBalance,
     ),
     applyDebtSettlement(
       accountId: newAccountId,
       direction: direction,
       amountMinor: newAmountMinor,
+      affectsBalance: newAffectsBalance,
     ),
   ]);
 }

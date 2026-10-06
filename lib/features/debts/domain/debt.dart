@@ -17,6 +17,7 @@ class Debt {
     required this.accountId,
     required this.date,
     this.settledMinor = 0,
+    this.affectsBalance = true,
     this.dueDate,
     this.note = '',
   });
@@ -37,6 +38,12 @@ class Debt {
   final DateTime date;
   final DateTime? dueDate;
   final String note;
+
+  /// Whether recording this debt moved cash through [accountId].
+  ///
+  /// False for a debt that predates the app or was handed over outside the
+  /// tracked accounts. What is outstanding does not depend on this.
+  final bool affectsBalance;
 
   /// Still owed.
   int get outstandingMinor => principalMinor - settledMinor;
@@ -76,6 +83,8 @@ class Debt {
       date: (data['date'] as Timestamp?)?.toDate() ?? DateTime.now(),
       dueDate: (data['dueDate'] as Timestamp?)?.toDate(),
       note: (data['note'] as String?) ?? '',
+      // Defaults true so debts written before this flag existed are unchanged.
+      affectsBalance: (data['affectsBalance'] as bool?) ?? true,
     );
   }
 
@@ -91,6 +100,7 @@ class Debt {
     // Mirrored into the document so the list can be filtered server-side
     // later without reading every debt.
     'isSettled': isSettled,
+    'affectsBalance': affectsBalance,
   };
 
   Debt copyWith({
@@ -102,6 +112,7 @@ class Debt {
     DateTime? date,
     DateTime? dueDate,
     String? note,
+    bool? affectsBalance,
   }) {
     return Debt(
       id: id,
@@ -113,6 +124,7 @@ class Debt {
       date: date ?? this.date,
       dueDate: dueDate ?? this.dueDate,
       note: note ?? this.note,
+      affectsBalance: affectsBalance ?? this.affectsBalance,
     );
   }
 }

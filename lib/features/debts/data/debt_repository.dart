@@ -69,6 +69,7 @@ class DebtRepository {
     required DateTime date,
     DateTime? dueDate,
     String note = '',
+    bool affectsBalance = true,
   }) async {
     if (principalMinor <= 0) {
       throw ArgumentError('A debt must be greater than zero.');
@@ -82,6 +83,7 @@ class DebtRepository {
           accountId: accountId,
           direction: direction,
           amountMinor: principalMinor,
+          affectsBalance: affectsBalance,
         ),
       );
       transaction.set(docRef, {
@@ -94,6 +96,7 @@ class DebtRepository {
         'dueDate': dueDate == null ? null : Timestamp.fromDate(dueDate),
         'note': note,
         'isSettled': false,
+        'affectsBalance': affectsBalance,
       });
     });
   }
@@ -112,6 +115,7 @@ class DebtRepository {
     required DateTime date,
     DateTime? dueDate,
     String note = '',
+    bool affectsBalance = true,
   }) async {
     if (principalMinor <= 0) {
       throw ArgumentError('A debt must be greater than zero.');
@@ -133,6 +137,8 @@ class DebtRepository {
           newAccountId: accountId,
           newDirection: direction,
           newAmountMinor: principalMinor,
+          oldAffectsBalance: original.affectsBalance,
+          newAffectsBalance: affectsBalance,
         ),
       );
       transaction.update(docRef, {
@@ -144,6 +150,7 @@ class DebtRepository {
         'dueDate': dueDate == null ? null : Timestamp.fromDate(dueDate),
         'note': note,
         'isSettled': principalMinor - original.settledMinor <= 0,
+        'affectsBalance': affectsBalance,
       });
     });
   }
@@ -167,12 +174,14 @@ class DebtRepository {
         accountId: debt.accountId,
         direction: debt.direction,
         amountMinor: debt.principalMinor,
+        affectsBalance: debt.affectsBalance,
       ),
       for (final settlement in settlements)
         reverseDebtSettlement(
           accountId: settlement.accountId,
           direction: debt.direction,
           amountMinor: settlement.amountMinor,
+          affectsBalance: settlement.affectsBalance,
         ),
     ]);
 
@@ -195,6 +204,7 @@ class DebtRepository {
     required String accountId,
     required DateTime date,
     String note = '',
+    bool affectsBalance = true,
   }) async {
     if (amountMinor <= 0) {
       throw ArgumentError('A settlement must be greater than zero.');
@@ -223,6 +233,7 @@ class DebtRepository {
           accountId: accountId,
           direction: current.direction,
           amountMinor: amountMinor,
+          affectsBalance: affectsBalance,
         ),
       );
 
@@ -237,6 +248,7 @@ class DebtRepository {
         'accountId': accountId,
         'date': Timestamp.fromDate(date),
         'note': note,
+        'affectsBalance': affectsBalance,
       });
     });
   }
@@ -248,6 +260,7 @@ class DebtRepository {
     required String accountId,
     required DateTime date,
     String note = '',
+    bool affectsBalance = true,
   }) async {
     if (amountMinor <= 0) {
       throw ArgumentError('A settlement must be greater than zero.');
@@ -280,6 +293,8 @@ class DebtRepository {
           newAccountId: accountId,
           newAmountMinor: amountMinor,
           direction: current.direction,
+          oldAffectsBalance: original.affectsBalance,
+          newAffectsBalance: affectsBalance,
         ),
       );
 
@@ -293,6 +308,7 @@ class DebtRepository {
         'accountId': accountId,
         'date': Timestamp.fromDate(date),
         'note': note,
+        'affectsBalance': affectsBalance,
       });
     });
   }
@@ -313,6 +329,7 @@ class DebtRepository {
           accountId: settlement.accountId,
           direction: current.direction,
           amountMinor: settlement.amountMinor,
+          affectsBalance: settlement.affectsBalance,
         ),
       );
 

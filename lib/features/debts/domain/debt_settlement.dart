@@ -13,6 +13,7 @@ class DebtSettlement {
     required this.accountId,
     required this.date,
     this.note = '',
+    this.affectsBalance = true,
   });
 
   final String id;
@@ -29,6 +30,11 @@ class DebtSettlement {
   final DateTime date;
   final String note;
 
+  /// Whether this repayment moved cash through [accountId]. Independent of
+  /// the parent debt's flag: a debt recorded without moving cash can still
+  /// be repaid into a tracked account today.
+  final bool affectsBalance;
+
   factory DebtSettlement.fromDoc(DocumentSnapshot<Map<String, dynamic>> doc) {
     final data = doc.data() ?? const {};
     return DebtSettlement(
@@ -38,6 +44,7 @@ class DebtSettlement {
       accountId: (data['accountId'] as String?) ?? '',
       date: (data['date'] as Timestamp?)?.toDate() ?? DateTime.now(),
       note: (data['note'] as String?) ?? '',
+      affectsBalance: (data['affectsBalance'] as bool?) ?? true,
     );
   }
 
@@ -47,6 +54,7 @@ class DebtSettlement {
     'accountId': accountId,
     'date': Timestamp.fromDate(date),
     'note': note,
+    'affectsBalance': affectsBalance,
   };
 
   DebtSettlement copyWith({
@@ -54,6 +62,7 @@ class DebtSettlement {
     String? accountId,
     DateTime? date,
     String? note,
+    bool? affectsBalance,
   }) {
     return DebtSettlement(
       id: id,
@@ -62,6 +71,7 @@ class DebtSettlement {
       accountId: accountId ?? this.accountId,
       date: date ?? this.date,
       note: note ?? this.note,
+      affectsBalance: affectsBalance ?? this.affectsBalance,
     );
   }
 }

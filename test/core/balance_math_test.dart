@@ -167,4 +167,180 @@ void main() {
       expect(mergeDeltas([]), isEmpty);
     });
   });
+
+  group('affectsBalance on transactions', () {
+    test('an entry that does not affect balance yields no delta', () {
+      expect(
+        applyTransaction(
+          accountId: 'a',
+          type: TxnType.income,
+          amountMinor: 5000,
+          affectsBalance: false,
+        ),
+        isEmpty,
+      );
+      expect(
+        applyTransaction(
+          accountId: 'a',
+          type: TxnType.expense,
+          amountMinor: 5000,
+          affectsBalance: false,
+        ),
+        isEmpty,
+      );
+    });
+
+    test('reversing one is also a no-op', () {
+      expect(
+        reverseTransaction(
+          accountId: 'a',
+          type: TxnType.expense,
+          amountMinor: 5000,
+          affectsBalance: false,
+        ),
+        isEmpty,
+      );
+    });
+
+    test('turning the flag off on edit gives the money back', () {
+      // Was an expense of 1000 against the balance; now record-only.
+      final delta = editTransaction(
+        oldAccountId: 'a',
+        oldType: TxnType.expense,
+        oldAmountMinor: 1000,
+        newAccountId: 'a',
+        newType: TxnType.expense,
+        newAmountMinor: 1000,
+        oldAffectsBalance: true,
+        newAffectsBalance: false,
+      );
+      expect(delta, {'a': 1000});
+    });
+
+    test('turning the flag on on edit applies it for the first time', () {
+      final delta = editTransaction(
+        oldAccountId: 'a',
+        oldType: TxnType.expense,
+        oldAmountMinor: 1000,
+        newAccountId: 'a',
+        newType: TxnType.expense,
+        newAmountMinor: 1000,
+        oldAffectsBalance: false,
+        newAffectsBalance: true,
+      );
+      expect(delta, {'a': -1000});
+    });
+
+    test('editing an amount while the flag stays off changes nothing', () {
+      final delta = editTransaction(
+        oldAccountId: 'a',
+        oldType: TxnType.expense,
+        oldAmountMinor: 1000,
+        newAccountId: 'b',
+        newType: TxnType.income,
+        newAmountMinor: 9999,
+        oldAffectsBalance: false,
+        newAffectsBalance: false,
+      );
+      expect(delta, isEmpty);
+    });
+  });
+
+  group('affectsBalance on debts', () {
+    test('a record-only debt moves no cash either way', () {
+      for (final direction in DebtDirection.values) {
+        expect(
+          applyDebt(
+            accountId: 'a',
+            direction: direction,
+            amountMinor: 500000,
+            affectsBalance: false,
+          ),
+          isEmpty,
+        );
+      }
+    });
+
+    test('a record-only debt settled against an account still credits it', () {
+      // Lent before the app existed, repaid into the bank today.
+      final net = mergeDeltas([
+        applyDebt(
+          accountId: 'bank',
+          direction: DebtDirection.given,
+          amountMinor: 500000,
+          affectsBalance: false,
+        ),
+        applyDebtSettlement(
+          accountId: 'bank',
+          direction: DebtDirection.given,
+          amountMinor: 500000,
+          affectsBalance: true,
+        ),
+      ]);
+      expect(net, {'bank': 500000});
+    });
+
+    test('a record-only settlement leaves the balance alone', () {
+      final net = mergeDeltas([
+        applyDebt(
+          accountId: 'bank',
+          direction: DebtDirection.given,
+          amountMinor: 500000,
+        ),
+        applyDebtSettlement(
+          accountId: 'bank',
+          direction: DebtDirection.given,
+          amountMinor: 500000,
+          affectsBalance: false,
+        ),
+      ]);
+      // The cash left when lent and was repaid outside the tracked accounts.
+      expect(net, {'bank': -500000});
+    });
+
+    test('both flags off nets to nothing', () {
+      final net = mergeDeltas([
+        applyDebt(
+          accountId: 'bank',
+          direction: DebtDirection.taken,
+          amountMinor: 400000,
+          affectsBalance: false,
+        ),
+        applyDebtSettlement(
+          accountId: 'bank',
+          direction: DebtDirection.taken,
+          amountMinor: 400000,
+          affectsBalance: false,
+        ),
+      ]);
+      expect(net, isEmpty);
+    });
+
+    test('turning a debt flag off on edit restores the account', () {
+      final delta = editDebt(
+        oldAccountId: 'hand',
+        oldDirection: DebtDirection.given,
+        oldAmountMinor: 500000,
+        newAccountId: 'hand',
+        newDirection: DebtDirection.given,
+        newAmountMinor: 500000,
+        oldAffectsBalance: true,
+        newAffectsBalance: false,
+      );
+      expect(delta, {'hand': 500000});
+    });
+
+    test('turning a settlement flag off on edit undoes its credit', () {
+      final delta = editDebtSettlement(
+        oldAccountId: 'bank',
+        oldAmountMinor: 200000,
+        newAccountId: 'bank',
+        newAmountMinor: 200000,
+        direction: DebtDirection.given,
+        oldAffectsBalance: true,
+        newAffectsBalance: false,
+      );
+      expect(delta, {'bank': -200000});
+    });
+  });
 }

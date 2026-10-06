@@ -48,6 +48,7 @@ class TransactionRepository {
     required DateTime date,
     String? categoryId,
     String note = '',
+    bool affectsBalance = true,
   }) async {
     final docRef = _refs.transactions.doc();
     await _db.runTransaction((transaction) async {
@@ -58,6 +59,7 @@ class TransactionRepository {
           accountId: accountId,
           type: type,
           amountMinor: amountMinor,
+          affectsBalance: affectsBalance,
         ),
       );
       transaction.set(docRef, {
@@ -67,6 +69,7 @@ class TransactionRepository {
         'categoryId': categoryId,
         'note': note,
         'date': Timestamp.fromDate(date),
+        'affectsBalance': affectsBalance,
       });
     });
   }
@@ -81,6 +84,7 @@ class TransactionRepository {
     required DateTime date,
     String? categoryId,
     String note = '',
+    bool affectsBalance = true,
   }) async {
     final docRef = _refs.transactions.doc(original.id);
     await _db.runTransaction((transaction) async {
@@ -93,6 +97,8 @@ class TransactionRepository {
           newAccountId: accountId,
           newType: type,
           newAmountMinor: amountMinor,
+          oldAffectsBalance: original.affectsBalance,
+          newAffectsBalance: affectsBalance,
         ),
       );
       transaction.update(docRef, {
@@ -102,6 +108,7 @@ class TransactionRepository {
         'categoryId': categoryId,
         'note': note,
         'date': Timestamp.fromDate(date),
+        'affectsBalance': affectsBalance,
       });
     });
   }
@@ -115,6 +122,7 @@ class TransactionRepository {
           accountId: txn.accountId,
           type: txn.type,
           amountMinor: txn.amountMinor,
+          affectsBalance: txn.affectsBalance,
         ),
       );
       transaction.delete(docRef);

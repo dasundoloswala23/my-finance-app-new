@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import '../../../core/balance_math.dart';
 import '../../../core/money.dart';
 import '../../../core/providers.dart';
+import '../../../core/widgets/affects_balance_switch.dart';
 import '../../dashboard/providers.dart';
 import '../domain/debt.dart';
 
@@ -36,6 +37,7 @@ class _DebtFormScreenState extends ConsumerState<DebtFormScreen> {
   late DateTime _date;
   DateTime? _dueDate;
   String? _accountId;
+  bool _affectsBalance = true;
 
   bool _isSubmitting = false;
   String? _errorMessage;
@@ -51,6 +53,7 @@ class _DebtFormScreenState extends ConsumerState<DebtFormScreen> {
     _date = existing?.date ?? DateTime.now();
     _dueDate = existing?.dueDate;
     _accountId = existing?.accountId;
+    _affectsBalance = existing?.affectsBalance ?? true;
     _personController = TextEditingController(text: existing?.personName ?? '');
     _amountController = TextEditingController(
       text: existing == null
@@ -58,15 +61,19 @@ class _DebtFormScreenState extends ConsumerState<DebtFormScreen> {
           : Money.toEditingValue(existing.principalMinor),
     );
     _noteController = TextEditingController(text: existing?.note ?? '');
+    _amountController.addListener(_onAmountChanged);
   }
 
   @override
   void dispose() {
     _personController.dispose();
+    _amountController.removeListener(_onAmountChanged);
     _amountController.dispose();
     _noteController.dispose();
     super.dispose();
   }
+
+  void _onAmountChanged() => setState(() {});
 
   Future<void> _pickDate({required bool isDueDate}) async {
     final initial = isDueDate ? (_dueDate ?? _date) : _date;
@@ -119,6 +126,7 @@ class _DebtFormScreenState extends ConsumerState<DebtFormScreen> {
           date: _date,
           dueDate: _dueDate,
           note: _noteController.text.trim(),
+          affectsBalance: _affectsBalance,
         );
       } else {
         await repository.create(
@@ -129,6 +137,7 @@ class _DebtFormScreenState extends ConsumerState<DebtFormScreen> {
           date: _date,
           dueDate: _dueDate,
           note: _noteController.text.trim(),
+          affectsBalance: _affectsBalance,
         );
       }
       if (mounted) navigator.pop();
@@ -268,6 +277,19 @@ class _DebtFormScreenState extends ConsumerState<DebtFormScreen> {
                   labelText: 'Note (optional)',
                   prefixIcon: Icon(Icons.notes),
                 ),
+              ),
+              const SizedBox(height: 16),
+              AffectsBalanceSwitch(
+                value: _affectsBalance,
+                onChanged: (value) =>
+                    setState(() => _affectsBalance = value),
+                accountName: accounts
+                    .where((account) => account.id == _accountId)
+                    .map((account) => account.name)
+                    .firstOrNull,
+                // Lending hands cash over; borrowing receives it.
+                increases: !isGiven,
+                amountMinor: Money.tryParse(_amountController.text),
               ),
               if (_errorMessage != null) ...[
                 const SizedBox(height: 16),

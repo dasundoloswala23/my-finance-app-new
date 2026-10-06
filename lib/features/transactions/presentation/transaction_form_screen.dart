@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import '../../../core/balance_math.dart';
 import '../../../core/money.dart';
 import '../../../core/providers.dart';
+import '../../../core/widgets/affects_balance_switch.dart';
 import '../../dashboard/providers.dart';
 import '../domain/txn.dart';
 
@@ -36,6 +37,7 @@ class _TransactionFormScreenState
   late TxnType _type;
   late DateTime _date;
   String? _accountId;
+  bool _affectsBalance = true;
   String? _categoryId;
 
   bool _isSubmitting = false;
@@ -52,18 +54,25 @@ class _TransactionFormScreenState
     _date = existing?.date ?? DateTime.now();
     _accountId = existing?.accountId;
     _categoryId = existing?.categoryId;
+    _affectsBalance = existing?.affectsBalance ?? true;
     _amountController = TextEditingController(
       text: existing == null ? '' : Money.toEditingValue(existing.amountMinor),
     );
     _noteController = TextEditingController(text: existing?.note ?? '');
+    // The balance switch spells out the exact amount it will move, so it has
+    // to rebuild as the amount is typed.
+    _amountController.addListener(_onAmountChanged);
   }
 
   @override
   void dispose() {
+    _amountController.removeListener(_onAmountChanged);
     _amountController.dispose();
     _noteController.dispose();
     super.dispose();
   }
+
+  void _onAmountChanged() => setState(() {});
 
   Future<void> _pickDate() async {
     final picked = await showDatePicker(
@@ -107,6 +116,7 @@ class _TransactionFormScreenState
           date: _date,
           categoryId: _categoryId,
           note: _noteController.text.trim(),
+          affectsBalance: _affectsBalance,
         );
       } else {
         await repository.create(
@@ -116,6 +126,7 @@ class _TransactionFormScreenState
           date: _date,
           categoryId: _categoryId,
           note: _noteController.text.trim(),
+          affectsBalance: _affectsBalance,
         );
       }
       if (mounted) navigator.pop();
@@ -255,6 +266,18 @@ class _TransactionFormScreenState
                   labelText: 'Note (optional)',
                   prefixIcon: Icon(Icons.notes),
                 ),
+              ),
+              const SizedBox(height: 16),
+              AffectsBalanceSwitch(
+                value: _affectsBalance,
+                onChanged: (value) =>
+                    setState(() => _affectsBalance = value),
+                accountName: accounts
+                    .where((account) => account.id == _accountId)
+                    .map((account) => account.name)
+                    .firstOrNull,
+                increases: _type == TxnType.income,
+                amountMinor: Money.tryParse(_amountController.text),
               ),
               if (_errorMessage != null) ...[
                 const SizedBox(height: 16),
