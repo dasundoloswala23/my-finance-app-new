@@ -20,7 +20,9 @@
       "Bash(git status *)",
       "Bash(awk '{printf \"%.1f KB\\\\n\", $5/1024}')",
       "Bash(git restore *)",
-      "Bash(git check-ignore *)"
+      "Bash(git check-ignore *)",
+      "Bash(perl -0pi -e ' *)",
+      "Bash(awk '{printf \"%.1f MB\\\\n\", $5/1024/1024}')"
     ],
     "additionalDirectories": [
       "C:\\KeyStore\\My Finance"
